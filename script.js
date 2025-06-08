@@ -1,36 +1,51 @@
 document.addEventListener('DOMContentLoaded', function() {
     
-    // State management variables
+    // --- Variabel untuk Mengelola State ---
     let allKeywords = [];
     let currentIndex = 0;
     const batchSize = 15;
     let isLoading = false;
 
-    // DOM Elements
+    // --- Elemen DOM ---
     const contentContainer = document.getElementById('auto-content-container');
     const loader = document.getElementById('loader');
 
+    // --- Fungsi Bantuan ---
+
     /**
-     * Capitalizes the first letter of each word in a string.
-     * @param {string} str The string to capitalize.
-     * @returns {string} The capitalized string.
+     * Mengacak urutan elemen dalam sebuah array menggunakan algoritma Fisher-Yates.
+     * @param {Array} array Array yang akan diacak.
      */
-    function capitalizeEachWord(str) {
-        return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]]; // Tukar elemen
+        }
     }
 
     /**
-     * Loads and displays the next batch of keywords.
+     * Mengubah setiap awal kata menjadi huruf kapital.
+     * @param {string} str String yang akan diubah.
+     * @returns {string} String dengan format Title Case.
+     */
+    function capitalizeEachWord(str) {
+        if (!str) return '';
+        return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    }
+
+
+    // --- Fungsi Utama ---
+
+    /**
+     * Memuat dan menampilkan batch kata kunci berikutnya ke halaman.
      */
     function loadNextBatch() {
         if (isLoading) return;
         isLoading = true;
         loader.style.display = 'block';
 
-        // Get the next batch of keywords from the main array
         const batch = allKeywords.slice(currentIndex, currentIndex + batchSize);
         
-        // Simulate a slight delay (like a network request) to make the loader visible
         setTimeout(() => {
             batch.forEach(keyword => {
                 const encodedTerm = encodeURIComponent(keyword);
@@ -50,59 +65,80 @@ document.addEventListener('DOMContentLoaded', function() {
                 contentContainer.innerHTML += cardHTML;
             });
 
-            // Update the index for the next batch
             currentIndex += batch.length;
-            
-            // Hide the loader when done
             loader.style.display = 'none';
             isLoading = false;
 
-            // If all keywords are loaded, remove the scroll event listener
             if (currentIndex >= allKeywords.length) {
                 window.removeEventListener('scroll', handleInfiniteScroll);
-                loader.style.display = 'none'; // Ensure loader is hidden for good
+                loader.style.display = 'none';
             }
-
-        }, 500); // 0.5 second delay
+        }, 500);
     }
 
     /**
-     * Handles the scroll event to trigger loading the next batch.
+     * Menangani event scroll untuk infinite loading.
      */
     function handleInfiniteScroll() {
-        // Check if the user has scrolled near the bottom of the page
         if ((window.innerHeight + window.scrollY) >= document.documentElement.offsetHeight - 100) {
             loadNextBatch();
         }
     }
 
     /**
-     * Initializes the page by fetching keywords from the file.
+     * Fungsi inisialisasi utama yang mengatur logika pengacakan harian.
      */
-    async function initialize() {
-        try {
-            const response = await fetch('keyword.txt');
-            if (!response.ok) throw new Error('keyword.txt file not found.');
-            
-            const text = await response.text();
-            allKeywords = text.split('\n').filter(k => k.trim() !== '');
+    async function initializeDailyShuffle() {
+        const today = new Date().toISOString().slice(0, 10); // Format: YYYY-MM-DD
+        const storedDate = localStorage.getItem('shuffleDate');
+        const storedKeywords = localStorage.getItem('shuffledKeywords');
 
-            if (allKeywords.length > 0) {
-                // Load the first batch
-                loadNextBatch();
-                // Add the event listener for infinite scrolling
-                window.addEventListener('scroll', handleInfiniteScroll);
-            } else {
-                contentContainer.innerHTML = '<p>No keywords to display.</p>';
+        if (storedDate === today && storedKeywords) {
+            // Gunakan daftar acak yang sudah tersimpan untuk hari ini
+            console.log("Loading shuffled keywords from localStorage for today.");
+            allKeywords = JSON.parse(storedKeywords);
+            startDisplay();
+        } else {
+            // Ambil, acak, dan simpan daftar baru
+            console.log("No valid shuffle for today. Fetching and shuffling new keywords.");
+            try {
+                const response = await fetch('keyword.txt');
+                if (!response.ok) throw new Error('keyword.txt file not found.');
+                
+                const text = await response.text();
+                const keywords = text.split('\n').filter(k => k.trim() !== '');
+                
+                // Acak daftar kata kunci
+                shuffleArray(keywords);
+                
+                // Simpan daftar yang sudah diacak dan tanggal hari ini
+                localStorage.setItem('shuffledKeywords', JSON.stringify(keywords));
+                localStorage.setItem('shuffleDate', today);
+                
+                allKeywords = keywords;
+                startDisplay();
+
+            } catch (error) {
+                console.error('Error:', error);
+                contentContainer.innerHTML = `<p style="text-align:center; color:red;">${error.message}</p>`;
                 loader.style.display = 'none';
             }
-        } catch (error) {
-            console.error('Error:', error);
-            contentContainer.innerHTML = `<p style="text-align:center; color:red;">${error.message}</p>`;
+        }
+    }
+
+    /**
+     * Memulai proses penampilan konten dan infinite scroll.
+     */
+    function startDisplay() {
+        if (allKeywords.length > 0) {
+            loadNextBatch(); // Muat batch pertama
+            window.addEventListener('scroll', handleInfiniteScroll);
+        } else {
+            contentContainer.innerHTML = '<p>No keywords to display.</p>';
             loader.style.display = 'none';
         }
     }
 
-    // Start the process
-    initialize();
+    // Mulai semua proses dengan logika pengacakan harian
+    initializeDailyShuffle();
 });
