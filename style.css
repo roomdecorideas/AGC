@@ -157,18 +157,20 @@ footer {
 
 /* --- MOBILE MENU & RESPONSIVE STYLES --- */
 
-/* Sembunyikan checkbox */
+/* Sembunyikan checkbox (ini tidak perlu diubah dan sudah benar) */
 .nav-toggle {
     display: none;
 }
 
-/* Sembunyikan ikon hamburger di PC secara default */
+/* * KUNCI UTAMA: Aturan untuk menyembunyikan ikon hamburger di PC.
+* Ini adalah keadaan default (untuk layar lebar > 768px).
+*/
 .nav-toggle-label {
-    display: none;
+    display: none; /* PAKSA SEMBUNYI DI DESKTOP */
     cursor: pointer;
     width: 30px;
     height: 30px;
-    display: flex;
+    display: flex; /* <-- Perubahan dari jawaban sebelumnya, ini akan diganti di media query */
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -216,7 +218,9 @@ footer {
     top: 0;
 }
 
-/* Aturan untuk layar kecil (Mobile) */
+/* * Aturan untuk layar kecil (Mobile) 
+* Ini akan menimpa aturan di atas jika lebar layar 768px atau kurang.
+*/
 @media (max-width: 768px) {
     .container {
         padding: 0 15px;
@@ -226,19 +230,17 @@ footer {
     }
     /* Tampilkan ikon hamburger di mobile */
     .nav-toggle-label {
-        display: flex;
+        display: flex; /* Pastikan ini ada untuk menampilkannya di mobile */
     }
     /* Sembunyikan navigasi desktop di mobile */
     nav {
+        display: none; /* Sembunyikan nav desktop di mobile */
         position: absolute;
         top: 100%;
         left: 0;
         width: 100%;
         background-color: #fff;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        transform: scaleY(0); /* Sembunyikan menu */
-        transform-origin: top;
-        transition: transform 0.3s ease-in-out;
     }
     nav ul {
         flex-direction: column;
@@ -247,6 +249,7 @@ footer {
     nav ul li {
         width: 100%;
         text-align: center;
+        margin-left: 0; /* Hapus margin kiri di mobile */
     }
     nav ul li a {
         padding: 1rem;
@@ -254,25 +257,22 @@ footer {
     }
     /* Tampilkan navigasi saat hamburger di-klik */
     .nav-toggle:checked ~ nav {
-        transform: scaleY(1);
+        display: block; /* Ganti dari transform ke display untuk konsistensi */
     }
-    .hero h2 {
-        font-size: 1.8rem;
+    /* ... sisa style mobile ... */
+    .hero h2, .main-article h1 { font-size: 1.8rem; }
+    .hero p, .article-content p { font-size: 1rem; }
+    .main-article { padding: 1.5rem; }
+    .section-title { font-size: 1.5rem; }
+}
+
+/* Aturan untuk layar besar (PC) untuk secara eksplisit menyembunyikan hamburger */
+@media (min-width: 769px) {
+    .nav-toggle-label {
+        display: none !important; /* Gunakan !important jika benar-benar diperlukan untuk memaksa sembunyi */
     }
-    .hero p {
-        font-size: 1rem;
-    }
-    .main-article h1 {
-        font-size: 1.8rem;
-    }
-    .article-content p {
-        font-size: 1rem;
-    }
-    .main-article {
-        padding: 1.5rem;
-    }
-    .section-title {
-        font-size: 1.5rem;
+    nav {
+        display: block; /* Pastikan nav desktop selalu terlihat di PC */
     }
 }
 
