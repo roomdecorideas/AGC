@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // --- PENGATURAN PENTING ---
     // ▼▼▼ GANTI DENGAN URL WEBSITE ANDA YANG SEBENARNYA ▼▼▼
-    const siteUrl = 'https://www.yourwebsitename.com';
+    const siteUrl = 'https://roomdecorideas.github.io/AGC';
     // ▲▲▲ GANTI DENGAN URL WEBSITE ANDA YANG SEBENARNYA ▲▲▲
     const feedTitle = 'DecorInspire - Latest Design Inspirations';
     const authorName = 'DecorInspire Team';
