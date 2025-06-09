@@ -13,31 +13,43 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Fungsi Bantuan ---
 
     /**
-     * Mengacak urutan elemen dalam sebuah array menggunakan algoritma Fisher-Yates.
-     * @param {Array} array Array yang akan diacak.
+     * Mengacak urutan elemen dalam sebuah array.
      */
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]]; // Tukar elemen
+            [array[i], array[j]] = [array[j], array[i]];
         }
     }
 
     /**
      * Mengubah setiap awal kata menjadi huruf kapital.
-     * @param {string} str String yang akan diubah.
-     * @returns {string} String dengan format Title Case.
      */
     function capitalizeEachWord(str) {
         if (!str) return '';
         return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     }
 
+    /**
+     * ▼▼▼ FUNGSI BARU UNTUK MEMBUAT JUDUL SEO ▼▼▼
+     * Membuat judul dengan format: [Angka Acak] [Hook Acak] [Keyword]
+     * @param {string} baseKeyword Keyword dasar.
+     * @returns {string} Judul baru yang sudah diformat.
+     */
+    function generateSeoTitle(baseKeyword) {
+        const hookWords = ['Best', 'Amazing', 'Cool', 'Inspiring', 'Creative', 'Awesome', 'Stunning', 'Beautiful', 'Unique', 'Ideas', 'Inspiration', 'Designs'];
+        const randomHook = hookWords[Math.floor(Math.random() * hookWords.length)];
+        const randomNumber = Math.floor(Math.random() * (200 - 55 + 1)) + 55;
+        const capitalizedKeyword = capitalizeEachWord(baseKeyword);
+
+        return `${randomNumber} ${randomHook} ${capitalizedKeyword}`;
+    }
+
 
     // --- Fungsi Utama ---
 
     /**
-     * Memuat dan menampilkan batch kata kunci berikutnya ke halaman.
+     * Memuat dan menampilkan batch kata kunci berikutnya.
      */
     function loadNextBatch() {
         if (isLoading) return;
@@ -51,13 +63,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const encodedTerm = encodeURIComponent(keyword);
                 const imageUrl = `https://tse1.mm.bing.net/th?q=${encodedTerm}`;
                 const linkUrl = `detail.html?q=${encodedTerm}`; 
+                
+                // Panggil fungsi generateSeoTitle di sini
+                const newTitle = generateSeoTitle(keyword);
 
                 const cardHTML = `
                     <article class="content-card">
                         <a href="${linkUrl}">
-                            <img src="${imageUrl}" alt="${keyword}" loading="lazy">
+                            <img src="${imageUrl}" alt="${newTitle}" loading="lazy">
                             <div class="content-card-body">
-                                <h3>${capitalizeEachWord(keyword)}</h3>
+                                <h3>${newTitle}</h3>
                             </div>
                         </a>
                     </article>
@@ -86,21 +101,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Fungsi inisialisasi utama yang mengatur logika pengacakan harian.
+     * Fungsi inisialisasi yang mengatur pengacakan harian.
      */
     async function initializeDailyShuffle() {
-        const today = new Date().toISOString().slice(0, 10); // Format: YYYY-MM-DD
+        const today = new Date().toISOString().slice(0, 10);
         const storedDate = localStorage.getItem('shuffleDate');
         const storedKeywords = localStorage.getItem('shuffledKeywords');
 
         if (storedDate === today && storedKeywords) {
-            // Gunakan daftar acak yang sudah tersimpan untuk hari ini
-            console.log("Loading shuffled keywords from localStorage for today.");
             allKeywords = JSON.parse(storedKeywords);
             startDisplay();
         } else {
-            // Ambil, acak, dan simpan daftar baru
-            console.log("No valid shuffle for today. Fetching and shuffling new keywords.");
             try {
                 const response = await fetch('keyword.txt');
                 if (!response.ok) throw new Error('keyword.txt file not found.');
@@ -108,10 +119,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const text = await response.text();
                 const keywords = text.split('\n').filter(k => k.trim() !== '');
                 
-                // Acak daftar kata kunci
                 shuffleArray(keywords);
                 
-                // Simpan daftar yang sudah diacak dan tanggal hari ini
                 localStorage.setItem('shuffledKeywords', JSON.stringify(keywords));
                 localStorage.setItem('shuffleDate', today);
                 
@@ -127,11 +136,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Memulai proses penampilan konten dan infinite scroll.
+     * Memulai proses penampilan konten.
      */
     function startDisplay() {
         if (allKeywords.length > 0) {
-            loadNextBatch(); // Muat batch pertama
+            loadNextBatch();
             window.addEventListener('scroll', handleInfiniteScroll);
         } else {
             contentContainer.innerHTML = '<p>No keywords to display.</p>';
@@ -139,6 +148,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Mulai semua proses dengan logika pengacakan harian
+    // Mulai semua proses
     initializeDailyShuffle();
 });
