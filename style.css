@@ -320,7 +320,7 @@ footer {
     padding-bottom: 1rem;
 }
 
-/* --- ▼▼▼ STYLE UNTUK TOMBOL DOWNLOAD ▼▼▼ --- */
+/* --- Style untuk Tombol Download --- */
 .download-buttons-container {
     display: flex;
     justify-content: center; /* Tombol di tengah */
