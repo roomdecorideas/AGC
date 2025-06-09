@@ -1,4 +1,5 @@
 // Setup website AGC
 
-Rubah keyword berada di file keyword.txt
-Rubah link domain di domain.txt
+Rubah keyword berada di file keyword.txt untuk generat konten
+Rubah link domain di domain.txt (akan berpengaruh di feed dan sitemap)
+Rubah link domain di robots.txt (akan berpengaruh di SEO)
