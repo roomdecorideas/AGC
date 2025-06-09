@@ -1,0 +1,4 @@
+// Setup website AGC
+
+Rubah keyword berada di file keyword.txt
+Rubah link domain di feed.html
