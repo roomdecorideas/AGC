@@ -1,18 +1,14 @@
 document.addEventListener('DOMContentLoaded', async function() {
 
-    // --- PENGATURAN PENTING ---
-    // ▼▼▼ GANTI DENGAN URL WEBSITE ANDA YANG SEBENARNYA ▼▼▼
-    const siteUrl = 'https://roomdecorideas.github.io/AGC';
-    // ▲▲▲ GANTI DENGAN URL WEBSITE ANDA YANG SEBENARNYA ▲▲▲
+    // --- Pengaturan Feed (Judul dan Nama Author) ---
     const feedTitle = 'DecorInspire - Latest Design Inspirations';
     const authorName = 'DecorInspire Team';
-
 
     // --- Elemen DOM ---
     const feedOutputElement = document.getElementById('feed-output');
 
 
-    // --- Fungsi Bantuan (Sama seperti di skrip lain) ---
+    // --- Fungsi Bantuan (Tidak ada perubahan) ---
 
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -40,13 +36,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     /**
      * Menghasilkan seluruh feed dalam format Atom 1.0 XML.
      * @param {Array<string>} keywordList - Daftar 50 keyword yang sudah diacak.
+     * @param {string} siteUrl - URL dasar website yang diambil dari domain.txt.
      * @returns {string} String XML yang lengkap.
      */
-    function generateAtomFeed(keywordList) {
+    function generateAtomFeed(keywordList, siteUrl) {
         const now = new Date();
-        const updatedTime = now.toISOString(); // Format tanggal standar ISO 8601
+        const updatedTime = now.toISOString();
 
-        // Header dari Atom Feed
         let xml = `<?xml version="1.0" encoding="utf-8"?>\n`;
         xml += `<feed xmlns="http://www.w3.org/2005/Atom">\n`;
         xml += `  <title>${feedTitle}</title>\n`;
@@ -58,14 +54,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         xml += `    <name>${authorName}</name>\n`;
         xml += `  </author>\n\n`;
 
-        // Loop untuk setiap keyword dan buat <entry>
         keywordList.forEach(keyword => {
             const title = generateSeoTitle(keyword);
             const encodedKeyword = encodeURIComponent(keyword);
             const articleUrl = `${siteUrl}/detail.html?q=${encodedKeyword}`;
             const imageUrl = `https://tse1.mm.bing.net/th?q=${encodedKeyword}`;
             
-            // Buat deskripsi yang mengandung keyword
             const description = `Discover one of the ${title}. Explore visual galleries and creative concepts related to ${capitalizeEachWord(keyword)}. Perfect for your next home or garden project.`;
 
             xml += `  <entry>\n`;
@@ -84,39 +78,35 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 
     /**
-     * Fungsi inisialisasi yang mengatur logika pengacakan harian
-     * dan menampilkan feed.
+     * Fungsi inisialisasi yang mengambil semua data yang diperlukan dan memulai pembuatan feed.
      */
     async function initializeFeed() {
-        const today = new Date().toISOString().slice(0, 10);
-        const storedDate = localStorage.getItem('feedShuffleDate');
-        let keywordSelection = [];
-
-        // Untuk feed, kita akan selalu acak ulang setiap hari
-        // jadi kita tidak perlu menyimpan daftar keywordnya, cukup tanggalnya.
-        // Jika Anda ingin feed tetap sama sepanjang hari, gunakan logika seperti di script.js
-        
         try {
-            const response = await fetch('keyword.txt');
-            if (!response.ok) throw new Error('keyword.txt file not found.');
+            // Langkah 1: Ambil URL dari domain.txt
+            const domainResponse = await fetch('domain.txt');
+            if (!domainResponse.ok) throw new Error('File domain.txt tidak ditemukan. Pastikan file tersebut ada.');
+            const siteUrl = (await domainResponse.text()).trim();
             
-            let allKeywords = await response.text();
+            if (!siteUrl) throw new Error('File domain.txt kosong.');
+
+            // Langkah 2: Ambil keywords dari keyword.txt
+            const keywordResponse = await fetch('keyword.txt');
+            if (!keywordResponse.ok) throw new Error('File keyword.txt tidak ditemukan.');
+            let allKeywords = await keywordResponse.text();
             allKeywords = allKeywords.split('\n').filter(k => k.trim() !== '');
 
-            // Acak seluruh daftar keyword
+            // Langkah 3: Acak dan pilih 50 keyword
             shuffleArray(allKeywords);
-            
-            // Ambil 50 keyword pertama dari hasil acakan
-            keywordSelection = allKeywords.slice(0, 50);
+            const keywordSelection = allKeywords.slice(0, 50);
 
             if (keywordSelection.length > 0) {
-                // Hasilkan feed XML dari 50 keyword terpilih
-                const feedXml = generateAtomFeed(keywordSelection);
+                // Langkah 4: Hasilkan feed XML dengan data yang sudah diambil
+                const feedXml = generateAtomFeed(keywordSelection, siteUrl);
                 
-                // Tampilkan output di elemen <pre>
+                // Tampilkan output di halaman
                 feedOutputElement.textContent = feedXml;
             } else {
-                feedOutputElement.textContent = 'Error: No keywords found to generate feed.';
+                feedOutputElement.textContent = 'Error: Tidak ada keyword ditemukan untuk membuat feed.';
             }
 
         } catch (error) {
@@ -125,6 +115,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // Jalankan proses pembuatan feed
+    // Jalankan semua proses
     initializeFeed();
 });
